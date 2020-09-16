@@ -85,6 +85,10 @@
 
 /* Wallet generator modifications: Copyright 2015 moneromooo */
 
+// Copyright (c) 2018, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
+
 
 var JSBigInt = (function () {
     "use strict";
@@ -1387,6 +1391,21 @@ var cnBase58 = (function () {
     this.strtobin = strtobin;
     b58.strtobin = strtobin;
 
+    function hextostr (hex) {
+        var h2b = hextobin(hex)
+        var res = ''
+        for (var i = 0; i < h2b.length; i++) {
+            res = res + String.fromCharCode(h2b[i])
+        }
+        return res
+    }
+    b58.hextostr = hextostr
+
+    function strtohex (str) {
+        return bintohex(strtobin(str))
+    }
+    b58.strtohex = strtohex
+
     function bintostr(bin) {
         var out = [];
         for (var i = 0; i < bin.length; i++) {
@@ -1624,8 +1643,11 @@ return{_strlen:lb,_ge_mul8:Va,_keccak:db,_ge_scalarmult:Ta,_ge_fromfe_frombytes_
 
 var salt = '4721283fee2db41e1f2fc50ea9f6d783'; // IMPORTANT: never change it, otherwise it will be impossible to restore previously generated wallets!
 var config = {
-    coinUnitPlaces: 8,
-    addressPrefix: 0xcd6
+    coinUnitPlaces: 12,
+    coinSymbol: 'CPA',
+    coinName: 'CpaCoin',
+    coinUriPrefix: 'cpacoin:',
+    addressPrefix: 5078
 };
 var cnUtil = (function(initConfig) {
     //var config = $.extend({}, initConfig);
@@ -1817,13 +1839,13 @@ var cnUtil = (function(initConfig) {
         keys.spend = this.generate_keys(first);
         // this is monero style
         // var second = this.keccak(keys.spend.sec, 32, 32);
-        // CPA paperwallet compatible
+        // Karbowanec paperwallet compatible
         var second = this.keccak(first, 32, 32);
         keys.view = this.generate_keys(second);
         keys.public_addr = this.pubkeys_to_string(keys.spend.pub, keys.view.pub);
 
 	var prefix = this.encode_varint(CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
-  	var privateKeyBase = prefix + keys.spend.pub + keys.view.pub + keys.spend.sec + keys.view.sec; // CPA privateKeyBase
+  	var privateKeyBase = prefix + keys.spend.pub + keys.view.pub + keys.spend.sec + keys.view.sec; // Karbowanec privateKeyBase
     var checksum = this.cn_fast_hash(privateKeyBase).slice(0, ADDRESS_CHECKSUM_SIZE * 2);
 
 	keys.privateKeys = cnBase58.encode(privateKeyBase + checksum);
@@ -1845,7 +1867,7 @@ var cnUtil = (function(initConfig) {
         if (public_addr.toUpperCase().slice(0, prefix.length) != prefix.toUpperCase())
           return null;
         // var second = this.keccak(keys.spend.sec, 32, 32);
-        // CPA paperwallet compatible
+        // Karbowanec paperwallet compatible
         var second = this.keccak(first, 32, 32);
         keys.view = this.generate_keys(second);
         keys.public_addr = this.pubkeys_to_string(keys.spend.pub, keys.view.pub);
@@ -1853,7 +1875,7 @@ var cnUtil = (function(initConfig) {
 
 
 	var prefix = this.encode_varint(CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
-  	var privateKeyBase = prefix + keys.spend.pub + keys.view.pub + keys.spend.sec + keys.view.sec; // CPA privateKeyBase
+  	var privateKeyBase = prefix + keys.spend.pub + keys.view.pub + keys.spend.sec + keys.view.sec; // Karbowanec privateKeyBase
     var checksum = this.cn_fast_hash(privateKeyBase).slice(0, ADDRESS_CHECKSUM_SIZE * 2);
 
 	keys.privateKeys = cnBase58.encode(privateKeyBase + checksum);
@@ -2072,12 +2094,99 @@ var cnUtil = (function(initConfig) {
         }
     }
 
-	function pubkeysToString(spend, view)
-	{
-        var prefix = encodeVarint(CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
-        var data = prefix + spend + view;
-        var checksum = cnFastHash(data);
-        return cnBase58.encode(data + checksum.slice(0, ADDRESS_CHECKSUM_SIZE * 2));
+    this.validate_address = function(address_b58) {
+
+        var output = {
+            valid: false,
+            input_address: address_b58,
+            address:"",
+            is_integrated:false,
+            integrated_id:""
+        }
+
+        // Quick check to see that it's valid
+        if((address_b58.length != 97 && address_b58.length != 187) || address_b58.substring(0,4) != "cp") {
+            return output;
+        }
+
+        // Check if it's valid base 58
+        try {
+            var address_hex = cnBase58.decode(address_b58);
+        } catch (error) {
+            return output;
+        }
+
+        // Our prefix in hex
+        var prefix_hex = cnUtil.encode_varint(config.addressPrefix);
+
+        // Check that our address starts with the correct prefix (should as we did a quick check above)
+        if(!address_hex.substr(0, prefix_hex.length) == prefix_hex) {
+            return output;
+        }
+
+        // check if we have an integrated address
+        var is_integrated = address_b58.length == 187;
+
+        // get the hex address without prefix
+        var address_no_prefix = address_hex.slice(prefix_hex.length);
+
+        if(is_integrated) {
+
+            // get the integrated id
+            var integrated_id = address_no_prefix.slice(0, 128);
+
+            // get the public spend and view key
+            var spend = address_no_prefix.slice(128, 128 + 64);
+            var view = address_no_prefix.slice(128 + 64, 256);
+
+            // get the checksum
+            var checksum = address_no_prefix.slice(256, 256 + (ADDRESS_CHECKSUM_SIZE * 2));
+
+            // Calculate the expected checksum (integrated addr)
+            var expectedChecksum = cnUtil.cn_fast_hash(prefix_hex + integrated_id + spend + view)
+                    .slice(0, ADDRESS_CHECKSUM_SIZE * 2);
+
+        } else {
+
+            // get the public spend and view key
+            var spend = address_no_prefix.slice(0, 64);
+            var view = address_no_prefix.slice(64, 128);
+
+            // get the checksum
+            var checksum = address_no_prefix.slice(128, 128 + (ADDRESS_CHECKSUM_SIZE * 2));
+
+            // Calculate the expected checksum (non integrated addr)
+            var expectedChecksum = cnUtil.cn_fast_hash(prefix_hex + spend + view).slice(0, ADDRESS_CHECKSUM_SIZE * 2);
+        }
+
+        if (checksum == expectedChecksum) {
+            output.valid = true;
+        }
+
+        if(!output.valid) {
+            return output;
+        }
+
+        // if we have integrated, calculate the base address
+        output.is_integrated = is_integrated;
+        if(output.is_integrated) {
+            /* As goofy as this sounds, we need to convert the payment
+               ID from hex into a string representation so that it returns
+               to a human readable form */
+            output.integrated_id = cnBase58.hextostr(integrated_id);
+
+            // Get the base address without the payment id
+            var data = prefix_hex + spend + view;
+            checksum = cnUtil.cn_fast_hash(data);
+            address_b58 = cnBase58.encode(data + checksum.slice(0, ADDRESS_CHECKSUM_SIZE * 2));
+        }
+
+        output.address = address_b58;
+        output.view = view;
+        output.spend = spend;
+        output.noprefix = address_no_prefix;
+
+        return output;
     }
 
     return this;
@@ -3690,6 +3799,86 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       s[40] = b40 ^ (~b42 & b44);
       s[41] = b41 ^ (~b43 & b45);
       s[2] = b2 ^ (~b4 & b6);
+      s[3] = b3 ^ (~b5 & b7);
+      s[12] = b12 ^ (~b14 & b16);
+      s[13] = b13 ^ (~b15 & b17);
+      s[22] = b22 ^ (~b24 & b26);
+      s[23] = b23 ^ (~b25 & b27);
+      s[32] = b32 ^ (~b34 & b36);
+      s[33] = b33 ^ (~b35 & b37);
+      s[42] = b42 ^ (~b44 & b46);
+      s[43] = b43 ^ (~b45 & b47);
+      s[4] = b4 ^ (~b6 & b8);
+      s[5] = b5 ^ (~b7 & b9);
+      s[14] = b14 ^ (~b16 & b18);
+      s[15] = b15 ^ (~b17 & b19);
+      s[24] = b24 ^ (~b26 & b28);
+      s[25] = b25 ^ (~b27 & b29);
+      s[34] = b34 ^ (~b36 & b38);
+      s[35] = b35 ^ (~b37 & b39);
+      s[44] = b44 ^ (~b46 & b48);
+      s[45] = b45 ^ (~b47 & b49);
+      s[6] = b6 ^ (~b8 & b0);
+      s[7] = b7 ^ (~b9 & b1);
+      s[16] = b16 ^ (~b18 & b10);
+      s[17] = b17 ^ (~b19 & b11);
+      s[26] = b26 ^ (~b28 & b20);
+      s[27] = b27 ^ (~b29 & b21);
+      s[36] = b36 ^ (~b38 & b30);
+      s[37] = b37 ^ (~b39 & b31);
+      s[46] = b46 ^ (~b48 & b40);
+      s[47] = b47 ^ (~b49 & b41);
+      s[8] = b8 ^ (~b0 & b2);
+      s[9] = b9 ^ (~b1 & b3);
+      s[18] = b18 ^ (~b10 & b12);
+      s[19] = b19 ^ (~b11 & b13);
+      s[28] = b28 ^ (~b20 & b22);
+      s[29] = b29 ^ (~b21 & b23);
+      s[38] = b38 ^ (~b30 & b32);
+      s[39] = b39 ^ (~b31 & b33);
+      s[48] = b48 ^ (~b40 & b42);
+      s[49] = b49 ^ (~b41 & b43);
+
+      s[0] ^= RC[n];
+      s[1] ^= RC[n + 1];
+    }
+  }
+
+  if(!root.JS_SHA3_TEST && NODE_JS) {
+    module.exports = methods;
+  } else if(root) {
+    for(var key in methods) {
+      root[key] = methods[key];
+    }
+  }
+}(this));
+
+/*
+CryptoJS v3.1.2
+code.google.com/p/crypto-js
+(c) 2009-2013 by Jeff Mott. All rights reserved.
+code.google.com/p/crypto-js/wiki/License
+*/
+var CryptoJS=CryptoJS||function(h,s){var f={},t=f.lib={},g=function(){},j=t.Base={extend:function(a){g.prototype=this;var c=new g;a&&c.mixIn(a);c.hasOwnProperty("init")||(c.init=function(){c.$super.init.apply(this,arguments)});c.init.prototype=c;c.$super=this;return c},create:function(){var a=this.extend();a.init.apply(a,arguments);return a},init:function(){},mixIn:function(a){for(var c in a)a.hasOwnProperty(c)&&(this[c]=a[c]);a.hasOwnProperty("toString")&&(this.toString=a.toString)},clone:function(){return this.init.prototype.extend(this)}},
+q=t.WordArray=j.extend({init:function(a,c){a=this.words=a||[];this.sigBytes=c!=s?c:4*a.length},toString:function(a){return(a||u).stringify(this)},concat:function(a){var c=this.words,d=a.words,b=this.sigBytes;a=a.sigBytes;this.clamp();if(b%4)for(var e=0;e<a;e++)c[b+e>>>2]|=(d[e>>>2]>>>24-8*(e%4)&255)<<24-8*((b+e)%4);else if(65535<d.length)for(e=0;e<a;e+=4)c[b+e>>>2]=d[e>>>2];else c.push.apply(c,d);this.sigBytes+=a;return this},clamp:function(){var a=this.words,c=this.sigBytes;a[c>>>2]&=4294967295<<
+32-8*(c%4);a.length=h.ceil(c/4)},clone:function(){var a=j.clone.call(this);a.words=this.words.slice(0);return a},random:function(a){for(var c=[],d=0;d<a;d+=4)c.push(4294967296*h.random()|0);return new q.init(c,a)}}),v=f.enc={},u=v.Hex={stringify:function(a){var c=a.words;a=a.sigBytes;for(var d=[],b=0;b<a;b++){var e=c[b>>>2]>>>24-8*(b%4)&255;d.push((e>>>4).toString(16));d.push((e&15).toString(16))}return d.join("")},parse:function(a){for(var c=a.length,d=[],b=0;b<c;b+=2)d[b>>>3]|=parseInt(a.substr(b,
+2),16)<<24-4*(b%8);return new q.init(d,c/2)}},k=v.Latin1={stringify:function(a){var c=a.words;a=a.sigBytes;for(var d=[],b=0;b<a;b++)d.push(String.fromCharCode(c[b>>>2]>>>24-8*(b%4)&255));return d.join("")},parse:function(a){for(var c=a.length,d=[],b=0;b<c;b++)d[b>>>2]|=(a.charCodeAt(b)&255)<<24-8*(b%4);return new q.init(d,c)}},l=v.Utf8={stringify:function(a){try{return decodeURIComponent(escape(k.stringify(a)))}catch(c){throw Error("Malformed UTF-8 data");}},parse:function(a){return k.parse(unescape(encodeURIComponent(a)))}},
+x=t.BufferedBlockAlgorithm=j.extend({reset:function(){this._data=new q.init;this._nDataBytes=0},_append:function(a){"string"==typeof a&&(a=l.parse(a));this._data.concat(a);this._nDataBytes+=a.sigBytes},_process:function(a){var c=this._data,d=c.words,b=c.sigBytes,e=this.blockSize,f=b/(4*e),f=a?h.ceil(f):h.max((f|0)-this._minBufferSize,0);a=f*e;b=h.min(4*a,b);if(a){for(var m=0;m<a;m+=e)this._doProcessBlock(d,m);m=d.splice(0,a);c.sigBytes-=b}return new q.init(m,b)},clone:function(){var a=j.clone.call(this);
+a._data=this._data.clone();return a},_minBufferSize:0});t.Hasher=x.extend({cfg:j.extend(),init:function(a){this.cfg=this.cfg.extend(a);this.reset()},reset:function(){x.reset.call(this);this._doReset()},update:function(a){this._append(a);this._process();return this},finalize:function(a){a&&this._append(a);return this._doFinalize()},blockSize:16,_createHelper:function(a){return function(c,d){return(new a.init(d)).finalize(c)}},_createHmacHelper:function(a){return function(c,d){return(new w.HMAC.init(a,
+d)).finalize(c)}}});var w=f.algo={};return f}(Math);
+(function(h){for(var s=CryptoJS,f=s.lib,t=f.WordArray,g=f.Hasher,f=s.algo,j=[],q=[],v=function(a){return 4294967296*(a-(a|0))|0},u=2,k=0;64>k;){var l;a:{l=u;for(var x=h.sqrt(l),w=2;w<=x;w++)if(!(l%w)){l=!1;break a}l=!0}l&&(8>k&&(j[k]=v(h.pow(u,0.5))),q[k]=v(h.pow(u,1/3)),k++);u++}var a=[],f=f.SHA256=g.extend({_doReset:function(){this._hash=new t.init(j.slice(0))},_doProcessBlock:function(c,d){for(var b=this._hash.words,e=b[0],f=b[1],m=b[2],h=b[3],p=b[4],j=b[5],k=b[6],l=b[7],n=0;64>n;n++){if(16>n)a[n]=
+c[d+n]|0;else{var r=a[n-15],g=a[n-2];a[n]=((r<<25|r>>>7)^(r<<14|r>>>18)^r>>>3)+a[n-7]+((g<<15|g>>>17)^(g<<13|g>>>19)^g>>>10)+a[n-16]}r=l+((p<<26|p>>>6)^(p<<21|p>>>11)^(p<<7|p>>>25))+(p&j^~p&k)+q[n]+a[n];g=((e<<30|e>>>2)^(e<<19|e>>>13)^(e<<10|e>>>22))+(e&f^e&m^f&m);l=k;k=j;j=p;p=h+r|0;h=m;m=f;f=e;e=r+g|0}b[0]=b[0]+e|0;b[1]=b[1]+f|0;b[2]=b[2]+m|0;b[3]=b[3]+h|0;b[4]=b[4]+p|0;b[5]=b[5]+j|0;b[6]=b[6]+k|0;b[7]=b[7]+l|0},_doFinalize:function(){var a=this._data,d=a.words,b=8*this._nDataBytes,e=8*a.sigBytes;
+d[e>>>5]|=128<<24-e%32;d[(e+64>>>9<<4)+14]=h.floor(b/4294967296);d[(e+64>>>9<<4)+15]=b;a.sigBytes=4*d.length;this._process();return this._hash},clone:function(){var a=g.clone.call(this);a._hash=this._hash.clone();return a}});s.SHA256=g._createHelper(f);s.HmacSHA256=g._createHmacHelper(f)})(Math);
+
+
+function poor_mans_kdf(str) {
+  var hex = cnBase58.bintohex(cnBase58.strtobin(str));
+  for (var n = 0; n < 10000; ++n) {
+    hex = keccak_256(cnBase58.hextobin(hex));
+  }
+  return hex;
+};
+);
       s[3] = b3 ^ (~b5 & b7);
       s[12] = b12 ^ (~b14 & b16);
       s[13] = b13 ^ (~b15 & b17);
