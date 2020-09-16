@@ -1,7 +1,7 @@
-var api = 'http://51.15.120.178:13281';
-var apiList = ["http://51.15.120.178:13281", "http://51.15.120.178:13281"];
-var donationAddress = "cp2pSRsXYT3GQcDFN3VSnuSCLpDwfdrSMWm6BDnqgG1w51bDvgsqSGVFsu5xE3jTvReXVviqiqGkNE3Qym7EfHGo27hJmv6Kv";
-var blockTargetInterval = 120;
+var api = 'https://blocks.cryptopay.org.za';
+var apiList = ["https://blocks.cryptopay.org.za", "https://blocks.cryptopay.org.za"];
+var donationAddress = "cpaT9fdMBg52NE1wmPaymyJxWokH1XH5tcTFW6WN4y71UfqXg1ALsRrcwocPyAoj8tD3QxKAK9aZWMwC4jkMkfsc1wApRUHGp";
+var blockTargetInterval = 90;
 var coinUnits = 100000000;
 var symbol = 'cpa';
 var refreshDelay = 30000;
