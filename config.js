@@ -2,7 +2,7 @@ var api = 'https://blocks.cryptopay.org.za';
 var apiList = ["https://blocks.cryptopay.org.za", "https://blocks.cryptopay.org.za"];
 var donationAddress = "cpaT9fdMBg52NE1wmPaymyJxWokH1XH5tcTFW6WN4y71UfqXg1ALsRrcwocPyAoj8tD3QxKAK9aZWMwC4jkMkfsc1wApRUHGp";
 var blockTargetInterval = 90;
-var coinUnits = 10000000000;
+var coinUnits = 1000000;
 var symbol = 'cpa';
 var refreshDelay = 30000;
 // pools stats by CPA Coin
