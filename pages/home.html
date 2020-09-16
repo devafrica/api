@@ -299,7 +299,7 @@ function renderLastBlock(){
 					block = data.result.block;
 					updateText('totalCoins', getReadableCoins(block.alreadyGeneratedCoins,4));
 					updateText('emissionPercent', ((block.alreadyGeneratedCoins / 85000000000000) * 100).toFixed(6) + "%");
-					updateText('currentReward', getReadableCoins(block.baseReward,6));
+					updateText('currentReward', getReadableCoins(block.baseReward,2));
 				}
 			});
 		}
