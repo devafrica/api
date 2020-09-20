@@ -77,7 +77,7 @@
 			renderTransaction(searchTx);
 		} else {
 			xhrGetTransaction = $.ajax({
-				url: api + '/',
+				url: api + '/json_rpc',
 				method: "POST",
 				data: JSON.stringify({
 					jsonrpc:"2.0",
