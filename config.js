@@ -21,7 +21,7 @@ var poolsStat =
 //	["cpa.multiminer.us", "https://cpa.multiminer.us:8119/stats"],
 //	["cpa.cryptomine.cx", "https://cpa.cryptomine.cx:8001/stats"],
 //	["cpa.optimusblue.com","https://cpa.optimusblue.com:8129/stats"],
-//	["cpa.youpool.io","http://cpa.youpool.io:8135/stats"],
+	["letshash.it/cpa/","https://letshash.it:8273/stats"],
 //	["cpa.romining.farm", "https://cpa.romining.farm/api/pool/stats"]
 ];
 
