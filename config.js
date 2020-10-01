@@ -26,5 +26,5 @@ var poolsStat =
 ];
 
 var nodesStat = 
-[["https://restapi.cryptopay.org.za"],
+[["restapi.cryptopay.org.za"],
 ];
