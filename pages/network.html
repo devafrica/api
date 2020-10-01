@@ -246,7 +246,7 @@ function getPools() {
 				var d = new Date(data.pool_statistics.lastBlockFoundTime*1000);
 				var datestring = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
 				var agostring = $.timeago(d);
-				$('#pools_rows').append('<tr><td id=host'+result+'><a target=blank href=http://'+host+'>'+result+'</a></td><td class="height" id=height-'+result+'>'+'</td><td class="break-word hash" id=lastHash-'+result+'>'+'</td><td id=hashrate-'+result+'>'+data.pool_statistics.hashRate+'</td><td id=miners-'+result+'>'+data.pool_statistics.miners+'</td><td>'+data.pool_statistics.lastBlockFound+'</td><td><span id=lastFound-'+result+'>'+datestring+'</span> (<span class="timeago" id="ago-'+result+'">'+agostring+'</span>)</td></tr>');
+				$('#pools_rows').append('<tr><td id=host'+result+'><a target=blank href=https://'+host+'>'+result+'</a></td><td class="height" id=height-'+result+'>'+'</td><td class="break-word hash" id=lastHash-'+result+'>'+'</td><td id=hashrate-'+result+'>'+data.pool_statistics.hashRate+'</td><td id=miners-'+result+'>'+data.pool_statistics.miners+'</td><td>'+data.pool_statistics.lastBlockFound+'</td><td><span id=lastFound-'+result+'>'+datestring+'</span> (<span class="timeago" id="ago-'+result+'">'+agostring+'</span>)</td></tr>');
 				totalHashrate += parseInt(data.pool_statistics.hashRate);
 				updateText('totalPoolsHashrate', getReadableHashRateString(totalHashrate) + '/sec');
 				poolNames.push(result);
