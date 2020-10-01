@@ -297,7 +297,7 @@ function getNodes() {
 	nodesStat.forEach(function(node) {
 		var url = node[0];
 		$.ajax({
-			url: 'http://' + url + '/getinfo',
+			url: 'http://' + url + '/info',
 			dataType: 'json',
 			type: 'GET',
 			cache: 'false'
@@ -319,7 +319,7 @@ function getNodes() {
 				var datestring  = formatDate(data.last_block_timestamp);
 				var agostring = $.timeago(dateTime);
 			}
-			$('#nodes_rows').append('<tr><td id=node-'+result+'><a target=blank href="http://'+url+'/getinfo">'+result+'</a></td><td class="height" id=nodeHeight-'+result+'>'+nodeHeight+'</td><td class="break-word hash" id=nodeHash-'+result+'>'+nodeHash+'</td><td id=known-'+result+'>'+data.last_known_block_index+'</td><td class="difficulty" id=diff-'+result+'>'+data.difficulty+'</td><td id=rpc-' + result + '>' + data.rpc_connections_count + '</td><td id=inc-'+result+'>'+ data.incoming_connections_count + '</td><td id=out-'+result+'>'+ data.outgoing_connections_count + '</td><td class="version" id=ver-'+result+'>'+ data.version + '</td><td class="date-time">' + formatDate(data.last_block_timestamp) + ' (<span class="timeago">'+agostring+'</span>)</td></tr>');
+			$('#nodes_rows').append('<tr><td id=node-'+result+'><a target=blank href="http://'+url+'/info">'+result+'</a></td><td class="height" id=nodeHeight-'+result+'>'+nodeHeight+'</td><td class="break-word hash" id=nodeHash-'+result+'>'+nodeHash+'</td><td id=known-'+result+'>'+data.last_known_block_index+'</td><td class="difficulty" id=diff-'+result+'>'+data.difficulty+'</td><td id=rpc-' + result + '>' + data.rpc_connections_count + '</td><td id=inc-'+result+'>'+ data.incoming_connections_count + '</td><td id=out-'+result+'>'+ data.outgoing_connections_count + '</td><td class="version" id=ver-'+result+'>'+ data.version + '</td><td class="date-time">' + formatDate(data.last_block_timestamp) + ' (<span class="timeago">'+agostring+'</span>)</td></tr>');
 			Versions.push(data.version);
 			nextDifficulties.push(parseInt(data.difficulty));
 			totalNodes++;
@@ -415,7 +415,7 @@ setInterval(function() {
 	nodesStat.forEach(function(node) {
 		var url = node[0];
 		$.ajax({
-			url: 'http://' + url + '/getinfo',
+			url: 'http://' + url + '/info',
 			dataType: 'json',
 			type: 'GET',
 			cache: 'false'
