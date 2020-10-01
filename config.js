@@ -1,5 +1,5 @@
 var api = 'https://node.cryptopay.org.za/';
-var apiList = ["https://restapi.cryptopay.org.za", "https://node.cryptopay.org.za/"];
+var apiList = ["https://node.cryptopay.org.za/"];
 var donationAddress = "cpZxRsnRTUe3riq6mW81RyRWx2BSNcU4Z51jnXUNivH27mRBCsP55vtcmfxpReLHtdF9FVBqvzQwAFgaWefKZWpa2ZqfoQMtu";
 var blockTargetInterval = 90;
 var coinUnits = 1000000;
@@ -26,7 +26,7 @@ var poolsStat =
 ];
 
 var nodesStat = 
-	[	["https://blocks.cryptopay.org.za"],
+[["https://restapi.cryptopay.org.za/node/list"],
 ["204.44.77.94:13281"],
 ["91.235.113.199:13281"],
 ["91.235.113.153:13281"],
