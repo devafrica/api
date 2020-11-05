@@ -1,14 +1,17 @@
 <?php 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+$data_string = '{"jsonrpc":"2.0","id":"test","method":"getlastblockheader","params":" "}';
+$ch = curl_init('https://blocks.cryptopay.org.za/json_rpc');
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_URL, 'https://blocks.cryptopay.org.za/info');
+curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($data_string))
+);
 $result = curl_exec($ch);
-$obj = json_decode($result, TRUE);
-curl_close($ch);
-
-$rewardRaw = $obj['last_block_reward'];
-$reward = number_format($rewardRaw / 100, 2, ".", "");
-
+$responseData = json_decode($result, TRUE);
+$rewardRaw = $responseData['result']['block_header']['reward'];
+$reward  = number_format($rewardRaw / 1000000, 6, ".", "");
 print_r($reward);
+curl_close($ch);
 ?>
