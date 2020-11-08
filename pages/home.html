@@ -222,9 +222,9 @@ $.ajax({
 			cache: 'false',
 			success: function(data){
 			block = data.result.block;
-				updateText('totalCoins', getReadableCoins(block.alreadyGeneratedCoins,2));
-				updateText('emissionPercent', (block.alreadyGeneratedCoins / 10000* 100).toFixed(2));
-				updateText('currentReward', getReadableCoins(block.baseReward,2));
+				updateText('totalCoins', getReadableCoins(block.alreadyGeneratedCoins,4));
+				updateText('emissionPercent', (block.alreadyGeneratedCoins / 1000000* 100).toFixed(2));
+				updateText('currentReward', getReadableCoins(block.baseReward,4));
 			}
 		});
     }
