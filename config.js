@@ -10,7 +10,7 @@ var refreshDelay = 30000;
 var poolsStat = 
 [
 	["poolparty.cryptopay.org.za", "https://partystats.cryptopay.org.za/stats"],
-//	["cpa.thepiratemine.nl", "https://cpa.piratepools.nl/:2887/stats"],
+	["newpool.pw/cpa", "https://minenice.newpool.pw:8215/stats"],
 //	["miningcache.com", "https://miningcache.com:8119/stats"],
 //	["cpa.cryptocoins-digging.space", "https://cpa.cryptocoins-digging.space:8119/stats"],
 //	["cpa.thecoinsmining.com", "https://cpa.thecoinsmining.com:8119/stats"],
